@@ -31,7 +31,8 @@ It supports both the system-installed and Flatpak versions of GNOME Weather.
 
 2. **Download the script:**
    ```bash
-   wget https://example.com/gnome-weather-location-adder.sh -O gnome-weather-location-adder.sh
+   wget https://raw.githubusercontent.com/Hakanbaban53/Useful-Scripts/main/Gnome%20Weather%20Custom%20Location/add-location-to-gnome-weather.sh
+   sh -O gnome-weather-location-adder.sh
    chmod +x gnome-weather-location-adder.sh
    ```
 
