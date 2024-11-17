@@ -6,7 +6,7 @@ This script installs or removes a Nautilus extension that allows you to open the
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/Useful-Scripts.git
+    git clone https://github.com/hakanbaban53/Useful-Scripts.git
     cd Useful-Scripts/Nautilus\ Open\ in\ kgx\ Terminal
     ```
 
