@@ -1,0 +1,81 @@
+# Rclone Mount Automation Scripts
+
+This directory contains scripts and service files to automate mounting Rclone drives based on network connectivity.
+
+## Files
+
+- **`rclone-mount.service`**: Systemd service for mounting Google Drive using Rclone.
+- **`99-rclone-restart`**: NetworkManager dispatcher script to manage the Rclone service based on network events.
+
+## Installation
+
+1. **Copy the systemd service:**
+   ```bash
+   sudo cp rclone-mount.service /etc/systemd/system/
+   ```
+
+2. **Copy the dispatcher script:**
+   ```bash
+   sudo cp 99-rclone-restart /etc/NetworkManager/dispatcher.d/
+   sudo chmod +x /etc/NetworkManager/dispatcher.d/99-rclone-restart
+   ```
+
+3. **Service Management:**
+   - You **do not need** to manually enable the `rclone-mount.service`. The `99-rclone-restart` script will automatically trigger the service on network events.
+
+4. **View Logs:**
+   - **Rclone Service Logs:**
+     ```bash
+     journalctl -u rclone-mount.service -f
+     ```
+   - **NetworkManager Dispatcher Logs (including `99-rclone-restart` events):**
+     ```bash
+     journalctl -u NetworkManager -f | grep 99-rclone-restart
+     ```
+   - **99-rclone-restart Log file:**
+     ```bash
+     tail -f /var/log/rclone-dispatcher.log
+     ```
+
+   This allows you to monitor both the Rclone service and the dispatcher script in real-time.
+
+## Usage
+
+The Rclone service will automatically start or stop based on network connectivity events. Logs are stored in `/var/log/rclone-dispatcher.log`.
+
+## Customization
+
+- Adjust the remote name, mount path, cache size, or log level in `rclone-mount.service`.
+- Modify network stability checks in `99-rclone-restart`.
+
+## Log Rotation (Optional but Recommended)
+
+To prevent the log file from growing indefinitely, configure log rotation:
+
+1. **Create a Logrotate Configuration File**:
+   ```bash
+   sudo nano /etc/logrotate.d/rclone-dispatcher
+   ```
+
+2. **Add the Following Configuration**:
+   ```bash
+   /var/log/rclone-dispatcher.log {
+       daily
+       missingok
+       rotate 7
+       compress
+       delaycompress
+       notifempty
+       create 644 root root
+   }
+   ```
+
+   This setup will:
+   - Rotate logs daily.
+   - Keep the last 7 logs.
+   - Compress old logs.
+   - Avoid rotation if the log is empty.
+
+## License
+
+MIT License - Feel free to use and modify as needed.

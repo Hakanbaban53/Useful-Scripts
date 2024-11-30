@@ -1,0 +1,45 @@
+#!/bin/bash
+# 99-rclone-restart - NetworkManager Dispatcher Script for Rclone Mount
+# This script automatically starts or stops the rclone mount service when the network status changes.
+
+interface=$1
+status=$2
+logfile="/var/log/rclone-dispatcher.log"
+rclone_service="rclone-mount.service"
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Network event: Interface $interface Status $status" >> $logfile
+
+check_network_stability() {
+    local retries=5
+    local wait=2
+    for ((i=1; i<=retries; i++)); do
+        if host -W 1 google.com &>/dev/null; then
+            return 0
+        fi
+	sleep $wait
+    done
+    return 1
+}
+
+if [ "$status" = "up" ]; then
+    echo "Checking network stability..." >> $logfile
+    if check_network_stability; then
+        echo "Network is stable. Starting $rclone_service..." >> $logfile
+        systemctl start $rclone_service
+        if [ $? -eq 0 ]; then
+            echo "$rclone_service started successfully." >> $logfile
+        else
+            echo "Failed to start $rclone_service." >> $logfile
+        fi
+    else
+        echo "Network is unstable. Skipping service start." >> $logfile
+    fi
+elif [ "$status" = "down" ]; then
+    echo "Stopping $rclone_service due to network disconnection..." >> $logfile
+    systemctl stop $rclone_service
+    if [ $? -eq 0 ]; then
+        echo "$rclone_service stopped successfully." >> $logfile
+    else
+        echo "Failed to stop $rclone_service." >> $logfile
+    fi
+fi

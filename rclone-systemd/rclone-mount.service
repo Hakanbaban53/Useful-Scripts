@@ -1,0 +1,33 @@
+[Unit]
+Description=Rclone Mount Service for Google Drive
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/mkdir -p "/home/hakan/Google Drive"
+ExecStart=/usr/bin/rclone mount "Google Drive:" "/home/hakan/Google Drive" \
+    --vfs-cache-mode full \
+    --vfs-cache-max-size 10G \
+    --cache-dir /home/hakan/.cache/rclone \
+    --buffer-size 16M \
+    --vfs-read-chunk-size 16M \
+    --vfs-read-chunk-size-limit 128M \
+    --transfers 4 --checkers 4 \
+    --config /home/hakan/.config/rclone/rclone.conf \
+    --log-file /home/hakan/.config/rclone/rclone.log \
+    --log-level INFO \
+    --retries 5 \
+    --low-level-retries 10
+ExecStop=/bin/fusermount -u "/home/hakan/Google Drive"
+ExecStopPost=/bin/rmdir "/home/hakan/Google Drive"
+RestartSec=5
+User=hakan
+Group=hakan
+TimeoutStopSec=30
+KillMode=process
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
