@@ -1,6 +1,6 @@
 #!/bin/bash
 # 99-rclone-restart - NetworkManager Dispatcher Script for Rclone Mount
-# This script automatically starts or stops the rclone mount service when the network status changes.
+# Automatically starts or stops the rclone mount service based on network events.
 
 interface=$1
 status=$2
@@ -9,14 +9,34 @@ rclone_service="rclone-mount.service"
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Network event: Interface $interface Status $status" >> $logfile
 
+# Exclude virtual interfaces
+excluded_interfaces=("lo" "tun*" "vnet*" "virbr*" "docker*" "br-*" "vmnet*" "wg*")
+
+# Check if the interface is excluded
+is_excluded_interface() {
+    for pattern in "${excluded_interfaces[@]}"; do
+        if [[ "$interface" == $pattern ]] || [[ "$interface" == ${pattern} ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Exit if it's an excluded interface
+if is_excluded_interface; then
+    echo "Skipping event for excluded interface: $interface" >> $logfile
+    exit 0
+fi
+
+# Function to check network stability
 check_network_stability() {
     local retries=5
     local wait=2
     for ((i=1; i<=retries; i++)); do
-        if host -W 1 google.com &>/dev/null; then
+        if host -W 1 google.com &>/dev/null || ping -c 1 -W 1 8.8.8.8 &>/dev/null; then
             return 0
         fi
-	sleep $wait
+        sleep $wait
     done
     return 1
 }
