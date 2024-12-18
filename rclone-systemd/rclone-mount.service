@@ -9,7 +9,6 @@ ExecStartPre=/usr/bin/mkdir -p "/home/hakan/Google Drive"
 ExecStart=/usr/bin/rclone mount "Google Drive:" "/home/hakan/Google Drive" \
     --vfs-cache-mode full \
     --vfs-cache-max-size 10G \
-    --cache-dir /home/hakan/.cache/rclone \
     --buffer-size 16M \
     --vfs-read-chunk-size 16M \
     --vfs-read-chunk-size-limit 128M \
