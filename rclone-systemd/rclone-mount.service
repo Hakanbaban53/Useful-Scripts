@@ -4,27 +4,32 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=simple
+Type=notify
 ExecStartPre=/usr/bin/mkdir -p "/home/hakan/Google Drive"
 ExecStart=/usr/bin/rclone mount "Google Drive:" "/home/hakan/Google Drive" \
     --vfs-cache-mode full \
-    --vfs-cache-max-size 10G \
-    --buffer-size 16M \
-    --vfs-read-chunk-size 16M \
-    --vfs-read-chunk-size-limit 128M \
+    --vfs-cache-max-size 20G \
+    --vfs-cache-max-age 24h \
+    --vfs-read-chunk-size 32M \
+    --vfs-read-chunk-size-limit 512M \
+    --buffer-size 64M \
     --transfers 4 --checkers 4 \
     --config /home/hakan/.config/rclone/rclone.conf \
-    --log-file /home/hakan/.config/rclone/rclone.log \
+    --log-file /home/hakan/.cache/rclone/rclone.log \
     --log-level INFO \
     --retries 5 \
-    --low-level-retries 10
-ExecStop=/bin/fusermount -u "/home/hakan/Google Drive"
+    --low-level-retries 10 \
+    --poll-interval 1m \
+    --daemon-timeout 10m
+ExecStop=/bin/fusermount -uz "/home/hakan/Google Drive"
 ExecStopPost=/bin/rmdir "/home/hakan/Google Drive"
-RestartSec=5
+Restart=always
+RestartSec=10
 User=hakan
 Group=hakan
-TimeoutStopSec=30
-KillMode=process
+TimeoutStopSec=60
+KillMode=mixed
+KillSignal=SIGINT
 StandardOutput=journal
 StandardError=journal
 
