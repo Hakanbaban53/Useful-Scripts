@@ -15,7 +15,6 @@ ExecStart=/usr/bin/rclone mount "Google Drive:" "/home/hakan/Google Drive" \
     --buffer-size 64M \
     --transfers 4 --checkers 4 \
     --config /home/hakan/.config/rclone/rclone.conf \
-    --log-file /home/hakan/.cache/rclone/rclone.log \
     --log-level INFO \
     --retries 5 \
     --low-level-retries 10 \
