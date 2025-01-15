@@ -41,23 +41,18 @@ if is_excluded_interface; then
     exit 0
 fi
 
-# Function to check network stability
-check_network_stability() {
-    local retries=5
-    local wait=2
-    for ((i=1; i<=retries; i++)); do
-        if host -W 1 google.com &>/dev/null || ping -c 1 -W 1 8.8.8.8 &>/dev/null; then
-            return 0
-        fi
-        sleep $wait
-    done
+# Function to check network connectivity across all interfaces
+is_network_connected() {
+    if host -W 1 google.com &>/dev/null || ping -c 1 -W 1 8.8.8.8 &>/dev/null; then
+        return 0
+    fi
     return 1
 }
 
 if [ "$status" = "up" ]; then
-    log "Network status 'up' detected. Checking network stability..." "INFO" "$CYAN"
-    if check_network_stability; then
-        log "Network is stable. Starting $rclone_service..." "SUCCESS" "$GREEN"
+    log "Network status 'up' detected on interface $interface. Checking network connectivity..." "INFO" "$CYAN"
+    if is_network_connected; then
+        log "Network is connected. Starting $rclone_service..." "SUCCESS" "$GREEN"
         systemctl start $rclone_service
         if [ $? -eq 0 ]; then
             log "$rclone_service started successfully." "SUCCESS" "$GREEN"
@@ -65,16 +60,21 @@ if [ "$status" = "up" ]; then
             log "Failed to start $rclone_service." "ERROR" "$RED"
         fi
     else
-        log "Network is unstable. Skipping service start." "WARNING" "$YELLOW"
+        log "Network is not fully connected. Skipping service start." "WARNING" "$YELLOW"
     fi
 elif [ "$status" = "down" ]; then
-    log "Network status 'down' detected. Stopping $rclone_service..." "INFO" "$CYAN"
-    systemctl stop $rclone_service
-    if [ $? -eq 0 ]; then
-        log "$rclone_service stopped successfully." "SUCCESS" "$GREEN"
+    log "Network status 'down' detected on interface $interface. Checking overall network connectivity..." "INFO" "$CYAN"
+    if ! is_network_connected; then
+        log "No active network connections. Stopping $rclone_service..." "INFO" "$CYAN"
+        systemctl stop $rclone_service
+        if [ $? -eq 0 ]; then
+            log "$rclone_service stopped successfully." "SUCCESS" "$GREEN"
+        else
+            log "Failed to stop $rclone_service." "ERROR" "$RED"
+        fi
     else
-        log "Failed to stop $rclone_service." "ERROR" "$RED"
+        log "Other network connections are active. Keeping $rclone_service running." "INFO" "$CYAN"
     fi
 else
-    log "Unknown network status: $status. No action taken." "WARNING" "$YELLOW"
+    log "Unknown network status: $status on interface $interface. No action taken." "WARNING" "$YELLOW"
 fi
