@@ -15,6 +15,20 @@ This directory contains scripts and service files to automate mounting Rclone dr
    ```
 
 2. **Copy the dispatcher script:**
+   - Some packages need to be installed for the dispatcher script to work. Install them using the following command:
+     ```bash 
+      # for arch based distros
+         sudo pacman -S bind
+
+      # for debian based distros
+         sudo apt install bind9-host
+
+      # for fedora based distros
+         sudo dnf install bind-utils
+     ```
+     
+   - Also this script uses the `NetworkManager dispatcher` service, which is available by default on most Linux distributions.
+
    ```bash
    sudo cp 99-rclone-restart /etc/NetworkManager/dispatcher.d/
    sudo chmod +x /etc/NetworkManager/dispatcher.d/99-rclone-restart
